@@ -1,0 +1,9 @@
+{
+  "name": "appli_en_carton",
+  "version": "0.1.0",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "~4",
+    "json": "^9.0.4"
+  }
+}
