@@ -36,15 +36,22 @@
             <th>Nom</th>
             <th>Prénom</th>
         </tr>
-        <tr>
-            <td></td>
-            <tf></tf>
-        </tr>
+
     </table>
     </div>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script>
+    $.get('/contact/list', function(data) {
+
+        var html = "";
+        $.each(data, function(key,contact) {
+            html += "<tr><td>"+contact.lastname+"</td><td>"+contact.firstname+"</td></tr>";
+        });
+        $('#contact').append(html);
+    });
+</script>
 </body>
 </html>
