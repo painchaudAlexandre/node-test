@@ -60,7 +60,7 @@
 
     socket.emit('member_connect', nickname);
 
-    function appendConnectedMember(id, nickname, self)
+    function appendConnectedMember(id, nickname, isCurrentUser)
     {
         if (nickname === undefined) {
             return false;
@@ -76,7 +76,7 @@
         var tr = document.createElement('tr');
         tr.setAttribute('id', memberId)
         var td = document.createElement('td');
-        if (self) {
+        if (isCurrentUser) {
             td.setAttribute('class', 'current-user')
         }
         var text = document.createTextNode(nickname);
@@ -109,18 +109,19 @@
 
     });
 
-    function appendChatMessage(nickname, message, self)
+    function appendChatMessage(nickname, message, isCurrentUser)
     {
         if (nickname === undefined) {
             return false;
         }
 
-        var connectedTable = document.getElementById('chat');
+        var chatTable = document.getElementById('chat');
         var tr = document.createElement('tr');
         tr.setAttribute('class', 'message-row');
         var td = document.createElement('td');
+
         var messageText = "";
-        if (self) {
+        if (isCurrentUser) {
             var strong = document.createElement('strong');
             var strongText = document.createTextNode(nickname);
             strong.appendChild(strongText);
@@ -135,15 +136,14 @@
         tr.appendChild(td);
 
         var messageTrList = document.getElementsByClassName("message-row");
-        var messageTrListLength = messageTrList.length;
-        if(messageTrListLength >= 20) {
+        if(messageTrList.length >= 20) {
             messageTrList.item(0).remove();
         }
-        connectedTable.appendChild(tr);
+        chatTable.appendChild(tr);
     }
 
     socket.on('member_disconnect', function(id) {
-        var tr = document.getElementById('member-' + id).remove();
+        document.getElementById('member-' + id).remove();
     });
 
     /**

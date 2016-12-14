@@ -62,13 +62,12 @@ io.on('connection', function(socket){
     socket.on('disconnect', function(){
         var id = null;
         for (var k in members) {
-            if(socket.id === members[k].id) {
+            if (socket.id === members[k].id) {
                 id = members[k].id;
                 members.splice(k,1);
                 break;
             }
         }
-
         io.emit('member_disconnect', socket.id);
     });
 });
