@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title><% title %></title>
+
+    <!-- Bootstrap -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style>
+        .current-user {
+            font-weight: bold;
+        }
+        #message {
+            width:100%;
+            height:10%;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+<h1><%= title %></h1>
+    <table id="chat" class="table table-stripped">
+
+    </table>
+    <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" name="message"></textarea>
+    </div>
+    <button type="submit" class="btn btn-default" id="send-message">Send</button>
+
+    <table id="connected" class="table">
+        <tr>
+            <th>Nickname</th>
+        </tr>
+
+    </table>
+</div>
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<!-- Include all compiled plugins (below), or include individual files as needed -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var socket = io();
+    var nickname = "";
+
+    do {
+        nickname = prompt('Choose a nickname please');
+    } while("" === nickname);
+
+    socket.emit('member_connect', nickname);
+
+    function appendConnectedMember(id, nickname, self)
+    {
+        if (nickname === undefined) {
+            return false;
+        }
+
+
+        var memberId = 'member-' + id;
+
+        if(document.getElementById(memberId)) {
+            return false;
+        }
+        var connectedTable = document.getElementById('connected');
+        var tr = document.createElement('tr');
+        tr.setAttribute('id', memberId)
+        var td = document.createElement('td');
+        if (self) {
+            td.setAttribute('class', 'current-user')
+        }
+        var text = document.createTextNode(nickname);
+        td.appendChild(text);
+        tr.appendChild(td);
+
+        connectedTable.appendChild(tr);
+    }
+
+    socket.on('member_connect', function(members) {
+       for (k in members) {
+            var self = (members[k].nickname == nickname);
+            appendConnectedMember(members[k].id, members[k].nickname, self);
+        }
+
+    });
+
+    /**
+     *  Message management
+     */
+    document.getElementById("send-message").addEventListener("click", function() {
+        var messageTag  = document.getElementById("message");
+        var message =  messageTag.value;
+        messageTag.value = "";
+        socket.emit('member_send_message', nickname,message);
+    });
+
+    socket.on('member_receive_message', function(data) {
+        appendChatMessage(data.nickname, data.message, data.nickname === nickname);
+
+    });
+
+    function appendChatMessage(nickname, message, self)
+    {
+        if (nickname === undefined) {
+            return false;
+        }
+
+        var connectedTable = document.getElementById('chat');
+        var tr = document.createElement('tr');
+        tr.setAttribute('class', 'message-row');
+        var td = document.createElement('td');
+        var messageText = "";
+        if (self) {
+            var strong = document.createElement('strong');
+            var strongText = document.createTextNode(nickname);
+            strong.appendChild(strongText);
+            td.appendChild(strong);
+        } else {
+            messageText = nickname;
+        }
+        messageText += ":" + message;
+
+        insertTextWithLineBreaks(messageText, td);
+
+        tr.appendChild(td);
+
+        var messageTrList = document.getElementsByClassName("message-row");
+        var messageTrListLength = messageTrList.length;
+        if(messageTrListLength >= 20) {
+            messageTrList.item(0).remove();
+        }
+        connectedTable.appendChild(tr);
+    }
+
+    socket.on('member_disconnect', function(id) {
+        var tr = document.getElementById('member-' + id).remove();
+    });
+
+    /**
+     * thanks to stackoverflow:)
+     * @param text
+     * @param targetElement
+     */
+    function insertTextWithLineBreaks(text, targetElement) {
+        var textWithNormalizedLineBreaks = text.replace('\r\n', '\n');
+        var textParts = textWithNormalizedLineBreaks.split('\n');
+
+        for (var i = 0; i < textParts.length; i++) {
+            targetElement.appendChild(document.createTextNode(textParts[i]));
+            if (i < textParts.length - 1) {
+                targetElement.appendChild(document.createElement('br'));
+            }
+        }
+    }
+</script>
+</body>
+</html>
